@@ -9,6 +9,7 @@ BuildRequires: gcc
 BuildRequires: autoconf
 BuildRequires: automake
 BuildRequires: libtool
+BuildRequires: libstdc++-devel
 
 %description
 c-ares is a C library that performs DNS requests and name resolves
@@ -34,18 +35,30 @@ This package contains documentation of the c-ares.
 %prep
 %autosetup -p1 -n %{name}-%{version}/%{name}
 
+# Only run offline tests
+cat > test/arestestoffline.sh <<EOF
+#!/bin/sh
+./arestest --gtest_filter=-\\*Live\\*
+EOF
+chmod +x test/arestestoffline.sh
+sed -e 's/TESTS = arestest fuzzcheck.sh/TESTS = arestestoffline.sh fuzzcheck.sh/' -i test/Makefile.am
+
 f=CHANGES ; iconv -f iso-8859-1 -t utf-8 $f -o $f.utf8 ; mv $f.utf8 $f
 
 %build
 autoreconf --force --install
 %configure --enable-shared --disable-static \
-           --disable-dependency-tracking
+           --disable-dependency-tracking \
+           --enable-tests
+
 %make_build
 
 %install
-rm -rf $RPM_BUILD_ROOT
 %make_install
 rm -f $RPM_BUILD_ROOT/%{_libdir}/libcares.la
+
+%check
+%__make -C test check
 
 %post -p /sbin/ldconfig
 %postun -p /sbin/ldconfig
