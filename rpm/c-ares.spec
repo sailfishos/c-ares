@@ -1,14 +1,12 @@
 Summary: A library that performs asynchronous DNS operations
 Name: c-ares
-Version: 1.16.1
+Version: 1.17.2
 Release: 1
 License: MIT
 URL: http://c-ares.haxx.se/
 Source0: %{name}-%{version}.tar.bz2
 BuildRequires: gcc
-BuildRequires: autoconf
-BuildRequires: automake
-BuildRequires: libtool
+BuildRequires: cmake
 BuildRequires: libstdc++-devel
 
 %description
@@ -36,29 +34,29 @@ This package contains documentation of the c-ares.
 %autosetup -p1 -n %{name}-%{version}/%{name}
 
 # Only run offline tests
-cat > test/arestestoffline.sh <<EOF
-#!/bin/sh
-./arestest --gtest_filter=-\\*Live\\*
-EOF
-chmod +x test/arestestoffline.sh
-sed -e 's/TESTS = arestest fuzzcheck.sh/TESTS = arestestoffline.sh fuzzcheck.sh/' -i test/Makefile.am
+sed -e '/ares-test-live.cc/d'  -i test/Makefile.inc
 
 f=CHANGES ; iconv -f iso-8859-1 -t utf-8 $f -o $f.utf8 ; mv $f.utf8 $f
 
 %build
-autoreconf --force --install
-%configure --enable-shared --disable-static \
-           --disable-dependency-tracking \
-           --enable-tests
+%cmake \
+    -DCARES_BUILD_TOOLS:BOOL=OFF \
+    -DCARES_BUILD_TESTS:BOOL=ON \
+    -B build \
+    -Wno-dev \
+    -S .
 
-%make_build
+%make_build -C build
 
 %install
+cd build
 %make_install
-rm -f $RPM_BUILD_ROOT/%{_libdir}/libcares.la
 
 %check
-%__make -C test check
+# Make sure we pick up c-ares that we just build instead of
+# the one from the system
+export LD_LIBRARY_PATH=$PWD/build/%{_lib}
+%__make -C build/test test
 
 %post -p /sbin/ldconfig
 %postun -p /sbin/ldconfig
@@ -75,6 +73,7 @@ rm -f $RPM_BUILD_ROOT/%{_libdir}/libcares.la
 %{_includedir}/ares_version.h
 %{_libdir}/*.so
 %{_libdir}/pkgconfig/libcares.pc
+%{_libdir}/cmake/c-ares/
 
 %files doc
 %license LICENSE.md
