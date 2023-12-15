@@ -1,6 +1,6 @@
 Summary: A library that performs asynchronous DNS operations
 Name: c-ares
-Version: 1.17.2
+Version: 1.23.0
 Release: 1
 License: MIT
 URL: http://c-ares.haxx.se/
@@ -69,6 +69,8 @@ export LD_LIBRARY_PATH=$PWD/build/%{_lib}
 %{_includedir}/ares.h
 %{_includedir}/ares_build.h
 %{_includedir}/ares_dns.h
+%{_includedir}/ares_dns_record.h
+%{_includedir}/ares_nameser.h
 %{_includedir}/ares_rules.h
 %{_includedir}/ares_version.h
 %{_libdir}/*.so
