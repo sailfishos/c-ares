@@ -1,13 +1,15 @@
+%undefine __cmake_in_source_build
+
 Summary: A library that performs asynchronous DNS operations
 Name: c-ares
-Version: 1.23.0
+Version: 1.34.6
 Release: 1
 License: MIT
-URL: http://c-ares.haxx.se/
+URL: https://github.com/sailfishos/c-ares
 Source0: %{name}-%{version}.tar.bz2
-BuildRequires: gcc
 BuildRequires: cmake
 BuildRequires: libstdc++-devel
+BuildRequires: pkgconfig(gmock)
 
 %description
 c-ares is a C library that performs DNS requests and name resolves
@@ -36,27 +38,19 @@ This package contains documentation of the c-ares.
 # Only run offline tests
 sed -e '/ares-test-live.cc/d'  -i test/Makefile.inc
 
-f=CHANGES ; iconv -f iso-8859-1 -t utf-8 $f -o $f.utf8 ; mv $f.utf8 $f
-
 %build
-%cmake \
+%cmake . \
     -DCARES_BUILD_TOOLS:BOOL=OFF \
     -DCARES_BUILD_TESTS:BOOL=ON \
-    -B build \
-    -Wno-dev \
-    -S .
+    -Wno-dev
 
-%make_build -C build
+%cmake_build
 
 %install
-cd build
-%make_install
+%cmake_install
 
 %check
-# Make sure we pick up c-ares that we just build instead of
-# the one from the system
-export LD_LIBRARY_PATH=$PWD/build/%{_lib}
-%__make -C build/test test
+%ctest
 
 %post -p /sbin/ldconfig
 %postun -p /sbin/ldconfig
@@ -71,7 +65,6 @@ export LD_LIBRARY_PATH=$PWD/build/%{_lib}
 %{_includedir}/ares_dns.h
 %{_includedir}/ares_dns_record.h
 %{_includedir}/ares_nameser.h
-%{_includedir}/ares_rules.h
 %{_includedir}/ares_version.h
 %{_libdir}/*.so
 %{_libdir}/pkgconfig/libcares.pc
@@ -79,5 +72,5 @@ export LD_LIBRARY_PATH=$PWD/build/%{_lib}
 
 %files doc
 %license LICENSE.md
-%doc README.cares CHANGES NEWS
+%doc README.md
 %{_mandir}/man3/ares_*
