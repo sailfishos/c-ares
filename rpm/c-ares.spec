@@ -2,7 +2,7 @@
 
 Summary: A library that performs asynchronous DNS operations
 Name: c-ares
-Version: 1.34.6
+Version: 1.34.8
 Release: 1
 License: MIT
 URL: https://github.com/sailfishos/c-ares
